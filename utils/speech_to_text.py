@@ -1,30 +1,22 @@
-import whisper
+# Whisper removed because Streamlit Cloud cannot run heavy ML models.
+# import whisper
 import os
 import google.generativeai as genai
 import json
 
 def voice_to_text(audio_path):
     """
-    Converts a recorded or uploaded voice note into text using OpenAI Whisper.
+    Whisper STT is disabled for Streamlit deployment.
+    Streamlit Cloud cannot run Whisper due to large model size & no GPU.
+
+    This placeholder returns a safe message.
     """
-    try:
-        # Load Whisper model (base = balanced speed & accuracy)
-        model = whisper.load_model("base")
-        result = model.transcribe(audio_path, fp16=False)
-        text = result.get("text", "").strip()
-
-        if not text:
-            return "No speech detected. Please try again."
-        return text
-
-    except Exception as e:
-        print(f"[Error: voice_to_text] {e}")
-        return f"Error transcribing audio: {str(e)}"
+    return "Voice transcription is disabled in the deployed version."
 
 
 def extract_crm_details(transcribed_text):
     """
-    Uses Gemini AI to extract structured CRM data from transcribed voice notes.
+    Uses Gemini AI to extract structured CRM data from text.
     Returns JSON with fields: Name, Company, Follow_up_Date, Notes.
     """
     try:
@@ -47,36 +39,36 @@ def extract_crm_details(transcribed_text):
         - Company (organization or client name)
         - Follow_up_Date (specific or relative time)
         - Notes (main discussion summary)
+
         If a field is missing, return it as null.
 
-        Output STRICT JSON ONLY, in this format:
+        Output STRICT JSON ONLY in this format:
         {{
             "Name": "Person Name",
             "Company": "Company Name",
             "Follow_up_Date": "Date or Time",
-            "Notes": "Brief summary of the discussion"
+            "Notes": "Brief summary"
         }}
 
         Conversation Text:
         {transcribed_text}
         """
 
-        # Generate structured response from Gemini
-        model = genai.GenerativeModel("gemini-2.0-flash")  # ✅ Stable model
+        # Call Gemini model
+        model = genai.GenerativeModel("gemini-2.0-flash")
         response = model.generate_content(prompt)
         text = response.text.strip()
 
-        # Handle possible Markdown formatting from Gemini
+        # Clean JSON if wrapped in markdown
         if text.startswith("```json"):
             text = text[7:-3].strip()
         elif text.startswith("```"):
             text = text[3:-3].strip()
 
-        # Parse to JSON safely
+        # Parse JSON
         try:
             data = json.loads(text)
         except json.JSONDecodeError:
-            # Fallback if model response isn’t pure JSON
             data = {
                 "Name": None,
                 "Company": None,
@@ -84,7 +76,7 @@ def extract_crm_details(transcribed_text):
                 "Notes": transcribed_text
             }
 
-        # Ensure all required keys exist
+        # Ensure required keys
         for key in ["Name", "Company", "Follow_up_Date", "Notes"]:
             data.setdefault(key, None)
 
