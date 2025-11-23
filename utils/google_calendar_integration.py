@@ -1,65 +1,34 @@
-from __future__ import print_function
-import datetime
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 from dateutil import parser
+import urllib.parse
 
-# Google Calendar SCOPES
-SCOPES = ['https://www.googleapis.com/auth/calendar']
-
-
-def parse_followup_date(date_str):
+def generate_calendar_link(summary, description, date):
     """
-    Convert natural language date strings into standard RFC3339 format for Google Calendar.
+    Creates a Google Calendar event link that requires no authentication.
     """
     try:
-        parsed = parser.parse(date_str, fuzzy=True)
-        return parsed.strftime("%Y-%m-%dT10:00:00+05:30")
-    except:
-        tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
-        return tomorrow.strftime("%Y-%m-%dT10:00:00+05:30")
+        # Parse date into datetime
+        dt = parser.parse(date)
 
+        # Start time
+        start = dt.strftime("%Y%m%dT%H%M%S")
 
-def get_calendar_service():
-    """
-    Creates a Google Calendar API service using a Service Account.
-    Reads credentials from Streamlit Secrets.
-    """
-    import streamlit as st
+        # End time = +1 hour
+        end_dt = dt.replace(hour=dt.hour + 1)
+        end = end_dt.strftime("%Y%m%dT%H%M%S")
 
-    # Load service account key from Streamlit Secrets
-    service_account_info = st.secrets["gcp_service_account"]
+        # Encode text for URL
+        summary_encoded = urllib.parse.quote(summary)
+        description_encoded = urllib.parse.quote(description or "")
 
-    creds = service_account.Credentials.from_service_account_info(
-        service_account_info,
-        scopes=SCOPES
-    )
+        # Build link
+        link = (
+            "https://calendar.google.com/calendar/render?action=TEMPLATE"
+            f"&text={summary_encoded}"
+            f"&dates={start}/{end}"
+            f"&details={description_encoded}"
+        )
 
-    # Build calendar service
-    service = build("calendar", "v3", credentials=creds)
-    return service
-
-
-def add_event_to_calendar(summary, description, date):
-    """
-    Create a Google Calendar event using Service Account credentials.
-    """
-    try:
-        service = get_calendar_service()
-
-        start_time = parse_followup_date(date)
-        end_dt = parser.parse(start_time) + datetime.timedelta(hours=1)
-        end_time = end_dt.strftime("%Y-%m-%dT11:00:00+05:30")
-
-        event = {
-            "summary": summary,
-            "description": description if description else "No additional notes",
-            "start": {"dateTime": start_time, "timeZone": "Asia/Kolkata"},
-            "end": {"dateTime": end_time, "timeZone": "Asia/Kolkata"},
-        }
-
-        created_event = service.events().insert(calendarId="primary", body=event).execute()
-        return f"✅ Event created: {created_event.get('htmlLink')}"
+        return link
 
     except Exception as e:
-        return f"❌ Error adding event: {str(e)}"
+        return f"Error generating calendar link: {str(e)}"
