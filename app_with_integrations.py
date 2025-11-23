@@ -161,20 +161,22 @@ if page == "🎤 Voice to CRM":
             st.json(crm_data)
 
             if st.button("💾 Save to CRM + Calendar"):
-                conn.execute(
-                    "INSERT INTO crm_data (Name, Company, Follow_up_Date, Notes) VALUES (?, ?, ?, ?)",
-                    (crm_data["Name"], crm_data["Company"], crm_data["Follow_up_Date"], crm_data["Notes"]),
-                )
-                conn.commit()
-                st.success("✅ Voice data saved successfully!")
+    conn.execute(
+        "INSERT INTO crm_data (Name, Company, Follow_up_Date, Notes) VALUES (?, ?, ?, ?)",
+        (crm_data["Name"], crm_data["Company"], crm_data["Follow_up_Date"], crm_data["Notes"]),
+    )
+    conn.commit()
+    st.success("✅ Voice data saved successfully!")
 
-                calendar_link = generate_calendar_link(
-    summary=f"Follow-up with {crm_data['Name']}",
-    description=crm_data["Notes"],
-    date=crm_data["Follow_up_Date"]
-)
-st.markdown(f"[📅 Click here to add event to Google Calendar]({calendar_link})")
- speak_confirmation(f"{crm_data['Name']} from {crm_data['Company']} added to CRM successfully!")
+    calendar_link = generate_calendar_link(
+        summary=f"Follow-up with {crm_data['Name']}",
+        description=crm_data["Notes"],
+        date=crm_data["Follow_up_Date"]
+    )
+    st.markdown(f"[📅 Click here to add event to Google Calendar]({calendar_link})")
+
+    speak_confirmation(f"{crm_data['Name']} from {crm_data['Company']} added to CRM successfully!")
+
 
 # ---------- EMAIL TO CRM ----------
 elif page == "📧 Email to CRM":
