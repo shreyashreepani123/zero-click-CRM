@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from utils.speech_to_text import voice_to_text, extract_crm_details
 from utils.email_to_crm import extract_email_details
-from utils.google_calendar_integration import add_event_to_calendar
+from utils.google_calendar_integration import generate_calendar_link
 from gtts import gTTS
 import playsound
 import matplotlib.pyplot as plt
@@ -168,12 +168,13 @@ if page == "🎤 Voice to CRM":
                 conn.commit()
                 st.success("✅ Voice data saved successfully!")
 
-                calendar_message = add_event_to_calendar(
-                    summary=f"Follow-up with {crm_data['Name']}",
-                    description=crm_data["Notes"],
-                    date=crm_data["Follow_up_Date"]
-                )
-                st.info(calendar_message)
+                calendar_link = generate_calendar_link(
+    summary=f"Follow-up with {crm_data['Name']}",
+    description=crm_data["Notes"],
+    date=crm_data["Follow_up_Date"]
+)
+st.markdown(f"[📅 Click here to add event to Google Calendar]({calendar_link})")
+
                 speak_confirmation(f"{crm_data['Name']} from {crm_data['Company']} added to CRM successfully!")
 
 # ---------- EMAIL TO CRM ----------
@@ -213,11 +214,11 @@ elif page == "📧 Email to CRM":
                 st.success("✅ Email data saved successfully!")
 
                 calendar_message = add_event_to_calendar(
-                    summary=f"Follow-up with {st.session_state.email_data['Name']}",
-                    description=st.session_state.email_data["Notes"],
-                    date=st.session_state.email_data["Follow_up_Date"]
-                )
-                st.info(calendar_message)
+    summary=f"Follow-up with {st.session_state.email_data['Name']}",
+    description=st.session_state.email_data["Notes"],
+    date=st.session_state.email_data["Follow_up_Date"]
+)
+st.info(calendar_message)
                 speak_confirmation(f"{st.session_state.email_data['Name']} added to CRM successfully!")
 
 # ---------- DASHBOARD ----------
