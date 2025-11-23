@@ -185,42 +185,22 @@ elif page == "📧 Email to CRM":
 
     if "email_data" not in st.session_state:
         st.session_state.email_data = None
+if st.button("💾 Save to CRM + Calendar"):
+    conn.execute(
+        "INSERT INTO crm_data (Name, Company, Follow_up_Date, Notes) VALUES (?, ?, ?, ?)",
+        (crm_data["Name"], crm_data["Company"], crm_data["Follow_up_Date"], crm_data["Notes"]),
+    )
+    conn.commit()
+    st.success("✅ Voice data saved successfully!")
 
-    if st.button("🔍 Extract Details"):
-        if not email_content.strip():
-            st.warning("⚠ Please paste some content before extracting.")
-        else:
-            with st.spinner("🧠 Extracting CRM data from text..."):
-                crm_data = extract_email_details(email_content)
-                st.session_state.email_data = crm_data
+    calendar_link = generate_calendar_link(
+        summary=f"Follow-up with {crm_data['Name']}",
+        description=crm_data["Notes"],
+        date=crm_data["Follow_up_Date"]
+    )
+    st.markdown(f"[📅 Click here to add event to Google Calendar]({calendar_link})")
 
-    if st.session_state.email_data:
-        st.subheader("🧾 Extracted Data:")
-        st.json(st.session_state.email_data)
-
-        if "error" in st.session_state.email_data:
-            st.error(st.session_state.email_data["error"])
-        else:
-            if st.button("💾 Save Email Data to CRM + Calendar"):
-                conn.execute(
-                    "INSERT INTO crm_data (Name, Company, Follow_up_Date, Notes) VALUES (?, ?, ?, ?)",
-                    (
-                        st.session_state.email_data["Name"],
-                        st.session_state.email_data["Company"],
-                        st.session_state.email_data["Follow_up_Date"],
-                        st.session_state.email_data["Notes"],
-                    ),
-                )
-                conn.commit()
-                st.success("✅ Email data saved successfully!")
-
-                calendar_message = add_event_to_calendar(
-    summary=f"Follow-up with {st.session_state.email_data['Name']}",
-    description=st.session_state.email_data["Notes"],
-    date=st.session_state.email_data["Follow_up_Date"]
-)
-st.info(calendar_message)
-speak_confirmation(f"{st.session_state.email_data['Name']} added to CRM successfully!")
+    speak_confirmation(f"{crm_data['Name']} from {crm_data['Company']} added to CRM successfully!")
 
 # ---------- DASHBOARD ----------
 # ---------- DASHBOARD ----------
