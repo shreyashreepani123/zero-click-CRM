@@ -174,8 +174,7 @@ if page == "🎤 Voice to CRM":
     date=crm_data["Follow_up_Date"]
 )
 st.markdown(f"[📅 Click here to add event to Google Calendar]({calendar_link})")
-
-                speak_confirmation(f"{crm_data['Name']} from {crm_data['Company']} added to CRM successfully!")
+ speak_confirmation(f"{crm_data['Name']} from {crm_data['Company']} added to CRM successfully!")
 
 # ---------- EMAIL TO CRM ----------
 elif page == "📧 Email to CRM":
@@ -219,7 +218,7 @@ elif page == "📧 Email to CRM":
     date=st.session_state.email_data["Follow_up_Date"]
 )
 st.info(calendar_message)
-                speak_confirmation(f"{st.session_state.email_data['Name']} added to CRM successfully!")
+speak_confirmation(f"{st.session_state.email_data['Name']} added to CRM successfully!")
 
 # ---------- DASHBOARD ----------
 # ---------- DASHBOARD ----------
